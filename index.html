@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaskFlow — Kanban + Chat</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="dark">
+
+  <div class="theme-switcher-float" id="themeSwitcher">
+    <button class="theme-dot light" data-theme="light" title="Claro" aria-label="Tema claro"></button>
+    <button class="theme-dot dark" data-theme="dark" title="Escuro" aria-label="Tema escuro"></button>
+    <button class="theme-dot purple" data-theme="purple" title="Roxo" aria-label="Tema roxo"></button>
+  </div>
+
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <h1>🗂️ TaskFlow</h1>
+      <p class="login-subtitle">Entre ou crie uma conta para acessar sua equipe</p>
+
+      <div class="login-tabs">
+        <button class="login-tab active" data-tab="login">Entrar</button>
+        <button class="login-tab" data-tab="signup">Criar Conta</button>
+      </div>
+
+      <div class="login-panel active" id="loginPanel">
+        <form id="loginForm">
+          <div class="field">
+            <label for="loginName">Nome</label>
+            <input id="loginName" required placeholder="Seu nome" autocomplete="username" />
+          </div>
+          <div class="field">
+            <label for="loginPassword">Senha</label>
+            <input id="loginPassword" type="password" required placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <p class="login-error" id="loginError"></p>
+          <button type="submit" class="btn btn-primary login-submit">Entrar</button>
+        </form>
+        <p class="login-hint">
+          Demo — Equipe A: <strong>Ana Silva</strong> / admin123 (Admin)<br />
+          Demo — Equipe B: <strong>Beatriz Lima</strong> / admin123 (Admin)
+        </p>
+      </div>
+
+      <div class="login-panel" id="signupPanel">
+        <form id="signupForm">
+          <div class="field">
+            <label for="signupName">Nome</label>
+            <input id="signupName" required placeholder="Seu nome completo" />
+          </div>
+          <div class="field">
+            <label for="signupPassword">Senha</label>
+            <input id="signupPassword" type="password" required placeholder="Crie uma senha" />
+          </div>
+          <div class="field">
+            <label for="signupTeam">Equipe</label>
+            <select id="signupTeam">
+              <option value="Equipe A">Equipe A</option>
+              <option value="Equipe B">Equipe B</option>
+              <option value="Equipe C">Equipe C</option>
+              <option value="__new__">+ Nova equipe...</option>
+            </select>
+          </div>
+          <div class="field hidden" id="signupNewTeamField">
+            <label for="signupNewTeam">Nome da nova equipe</label>
+            <input id="signupNewTeam" placeholder="Ex.: Equipe Marketing" />
+          </div>
+          <p class="login-error" id="signupError"></p>
+          <button type="submit" class="btn btn-primary login-submit">Criar Conta</button>
+        </form>
+        <p class="login-hint">Novas contas entram sempre com o cargo de Membro.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-root hidden" id="appRoot">
+    <header class="topbar">
+      <h1>🗂️ TaskFlow</h1>
+      <div class="topbar-actions">
+        <input type="search" id="taskSearch" class="search-input" placeholder="🔍 Buscar tarefas..." />
+        <div class="session-chip" id="sessionChip">
+          <span class="chat-avatar" id="sessionAvatar" style="width:24px;height:24px;font-size:0.6rem;"></span>
+          <span id="sessionName"></span>
+        </div>
+        <button class="btn btn-ghost" id="chatToggleBtn">💬 Chat</button>
+        <button class="btn btn-primary hidden" id="newTaskBtn">+ Nova Tarefa</button>
+        <button class="btn btn-ghost" id="logoutBtn">Sair</button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <section class="board" id="board">
+        <div class="column" data-status="pendente">
+          <div class="column-header">
+            <h2>🕓 Pendente</h2>
+            <span class="count-badge" id="count-pendente">0</span>
+          </div>
+          <div class="column-body" id="col-pendente"></div>
+        </div>
+        <div class="column" data-status="andamento">
+          <div class="column-header">
+            <h2>🚧 Em Andamento</h2>
+            <span class="count-badge" id="count-andamento">0</span>
+          </div>
+          <div class="column-body" id="col-andamento"></div>
+        </div>
+        <div class="column" data-status="concluido">
+          <div class="column-header">
+            <h2>✅ Concluído</h2>
+            <span class="count-badge" id="count-concluido">0</span>
+          </div>
+          <div class="column-body" id="col-concluido"></div>
+        </div>
+      </section>
+
+      <aside class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+          <span>Chat</span>
+          <button id="chatCloseBtn" aria-label="Fechar chat">✕</button>
+        </div>
+        <div class="chat-tabs">
+          <button class="chat-tab active" data-chat="team">Chat da Equipe</button>
+          <button class="chat-tab" data-chat="dm">Mensagens Diretas</button>
+        </div>
+        <div class="chat-dm-select hidden" id="chatDmSelect">
+          <select id="dmRecipient"></select>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-form-identity" id="chatIdentity"></div>
+        <form class="chat-form" id="chatForm">
+          <button type="button" class="btn btn-ghost chat-attach-btn" id="chatAttachBtn" aria-label="Anexar arquivo">📎</button>
+          <input type="text" id="chatInput" placeholder="Digite uma mensagem..." autocomplete="off" />
+          <button class="btn btn-primary" type="submit" aria-label="Enviar">➤</button>
+        </form>
+      </aside>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal modal-wide">
+      <h2 id="taskModalTitle">Nova Tarefa</h2>
+      <form id="taskForm">
+        <div class="field">
+          <label for="taskTitle">Título</label>
+          <input id="taskTitle" required placeholder="Ex.: Preparar apresentação" />
+        </div>
+        <div class="field">
+          <label for="taskDescription">Descrição</label>
+          <textarea id="taskDescription" rows="3" placeholder="Detalhes da tarefa..."></textarea>
+        </div>
+        <div class="date-row">
+          <div class="field">
+            <label for="taskStart">Início</label>
+            <input id="taskStart" type="date" />
+          </div>
+          <div class="field">
+            <label for="taskEnd">Fim</label>
+            <input id="taskEnd" type="date" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="taskPriority">Prioridade</label>
+          <select id="taskPriority">
+            <option value="urgente">🔴 Urgente</option>
+            <option value="alta">🟠 Alta</option>
+            <option value="normal" selected>🔵 Normal</option>
+            <option value="baixa">⚪ Baixa</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="assigneesText">Responsáveis</label>
+          <div class="tags-input" id="assigneesTagsInput">
+            <div class="tags-input-chips" id="assigneesChips"></div>
+            <input type="text" id="assigneesText" placeholder="Digite um nome..." autocomplete="off" />
+            <div class="autocomplete-dropdown" id="assigneesDropdown"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Anexos</label>
+          <div class="attachments-row">
+            <button type="button" class="btn btn-ghost btn-sm" id="attachTaskBtn">📎 Anexar arquivo</button>
+            <input type="file" id="taskFileInput" class="hidden" multiple />
+          </div>
+          <div class="attachments-list" id="taskAttachmentsList"></div>
+        </div>
+
+        <p class="modal-section-title">Checklist</p>
+        <div class="checklist-list" id="checklistList"></div>
+        <div class="checklist-add-row" id="checklistAddRow">
+          <input type="text" id="checklistNewItem" placeholder="Nova subtarefa..." />
+          <button type="button" class="btn btn-ghost btn-sm" id="checklistAddBtn">+</button>
+        </div>
+
+        <div id="commentsSection" class="hidden">
+          <p class="modal-section-title">Comentários</p>
+          <div class="comments-list" id="commentsList"></div>
+          <div class="comment-add-row">
+            <input type="text" id="commentInput" placeholder="Escreva um comentário..." />
+            <button type="button" class="btn btn-ghost btn-sm" id="commentAddBtn">Enviar</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelTaskBtn">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="taskSubmitBtn">Criar Tarefa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
